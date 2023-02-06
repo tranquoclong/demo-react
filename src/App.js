@@ -1,22 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
+import { GoogleButton } from "react-google-button";
+import { auth } from "./firebaseConfig";
 
 function App() {
+  const [user, setUser] = useState(1);
+  const googleSignIn = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider);
+  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = () => {
+    signOut(auth);
+  };
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        {user ? (
+          <>
+            <p>Welcome, {user?.displayName}</p>
+            <button onClick={handleSignOut} className="border py-2 px-5 mt-10">
+              Logout
+            </button>
+          </>
+        ) : (
+          <GoogleButton onClick={googleSignIn} />
+        )}
       </header>
     </div>
   );
